@@ -104,13 +104,31 @@ const LABEL = {
 };
 
 async function readX(handle) {
-  const j = await json('https://api.fxtwitter.com/' + encodeURIComponent(handle), 6000);
-  const u = j && (j.user || (j.result && j.result.user));
+  // Three routes, because no single one has stayed up. fxtwitter and vxtwitter are
+  // the community mirrors; the syndication widget is X's own and the oldest. If all
+  // three refuse we say X refused rather than inventing a profile.
+  let j = await json('https://api.fxtwitter.com/' + encodeURIComponent(handle), 6000);
+  let u = j && (j.user || (j.result && j.result.user));
+  if (!u) {
+    const v = await json('https://api.vxtwitter.com/' + encodeURIComponent(handle), 6000);
+    const vu = v && (v.user || v);
+    if (vu && (vu.screen_name || vu.user_screen_name)) {
+      u = {
+        name: vu.name || vu.user_name || null,
+        id: vu.id || vu.id_str || vu.user_id || null,
+        followers: typeof vu.followers === 'number' ? vu.followers
+                 : (typeof vu.followers_count === 'number' ? vu.followers_count : null),
+        avatar_url: vu.avatar_url || vu.profile_image_url_https || null,
+        screen_name: vu.screen_name || vu.user_screen_name,
+      };
+    }
+  }
   if (u) {
     return {
       name: u.name || null,
       id: u.id ? String(u.id) : null,
-      followers: typeof u.followers === 'number' ? u.followers : null,
+      followers: typeof u.followers === 'number' ? u.followers
+               : (typeof u.followers_count === 'number' ? u.followers_count : null),
       avatar: u.avatar_url || null,
       url: 'https://x.com/' + (u.screen_name || handle),
       note: null,
@@ -257,6 +275,13 @@ module.exports = async (req, res) => {
       error: LABEL[p.platform] + ' did not answer for @' + p.handle + '. Either the account does not exist or the platform refused this server.',
     });
     return;
+  }
+
+  const empty = !r.name && !r.id && r.followers == null && !r.avatar;
+  if (empty && !r.note) {
+    r.note = LABEL[p.platform] + ' served this page without a name, an account ID, a ' +
+      'follower count or a picture. The pairing still holds — the claim is checked ' +
+      'against the posted code — but there is nothing here to show you.';
   }
 
   res.status(200).json({
