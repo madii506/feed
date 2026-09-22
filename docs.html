@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FEED — docs</title>
+<meta name="description" content="How a coin is linked to a feed, how a claim is proved, what the split is, and what is not verifiable today.">
+<link rel="icon" href="/assets/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="/assets/favicon-180.png">
+<style>
+@font-face{font-family:Inter;src:url(/assets/inter.woff2) format('woff2-variations');font-weight:100 900;font-display:swap}
+@font-face{font-family:Mono;src:url(/assets/mono.woff2) format('woff2');font-weight:400 600;font-display:swap}
+:root{
+  --paper:#fbfcfe;--ink:#120a2e;--body:#2c2f45;--dim:#63687f;
+  --line:rgba(18,10,46,.14);--hair:rgba(18,10,46,.09);
+  --ramp:linear-gradient(105deg,#10c9ba 0%,#3a70e8 48%,#7c3aed 100%);
+}
+*{box-sizing:border-box}
+html{overflow-x:hidden;scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;overflow-x:clip;background:var(--paper);color:var(--body);
+  font:400 14.5px/1.74 Inter,system-ui,-apple-system,sans-serif;letter-spacing:-.003em;
+  -webkit-font-smoothing:antialiased}
+#mist{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block}
+.grain{position:fixed;inset:-40px;z-index:-1;pointer-events:none;
+  background-image:radial-gradient(rgba(18,10,46,.05) 1.2px,transparent 1.3px);
+  background-size:22px 22px;animation:drift 34s linear infinite}
+@keyframes drift{to{transform:translate(22px,22px)}}
+h1,h2,h3{color:var(--ink);margin:0;letter-spacing:-.03em;font-weight:800}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.06;letter-spacing:-.04em}
+h2{font-size:clamp(20px,2.6vw,26px);line-height:1.24;font-weight:750;margin:0 0 4px}
+h3{font-size:15.5px;font-weight:700;margin:26px 0 6px}
+p{margin:0 0 14px;max-width:70ch}
+a{color:var(--ink)}
+.mono{font-family:Mono,ui-monospace,Menlo,monospace}
+.dim{color:var(--dim)}
+[hidden]{display:none!important}
+
+.top{position:sticky;top:0;z-index:5;backdrop-filter:blur(14px);
+  background:rgba(251,252,254,.8);border-bottom:1px solid var(--line)}
+.top .in{max-width:1280px;margin:0 auto;padding:0 32px;height:54px;display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center}
+.top nav{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.top nav a{color:var(--dim);text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap}
+.top nav a:hover{color:var(--ink)}
+
+.shell{max-width:1280px;margin:0 auto;padding:44px 32px 80px;
+  display:grid;grid-template-columns:210px minmax(0,1fr) 210px;gap:44px;align-items:start}
+.side{position:sticky;top:78px;font-size:13px}
+.side h4{font-family:Mono,monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin:0 0 10px;font-weight:500}
+.side .grp{margin-bottom:22px}
+.side a{display:block;color:var(--dim);text-decoration:none;padding:4px 0;line-height:1.4}
+.side a:hover{color:var(--ink)}
+.side a.on{color:var(--ink);font-weight:650}
+.meta{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--dim);
+  margin:14px 0 0}
+.meta button{background:none;border:0;color:var(--dim);cursor:pointer;font:inherit;padding:0}
+.meta button:hover{color:var(--ink)}
+.sec{padding:42px 0;border-top:1px solid var(--line);scroll-margin-top:72px}
+.eb{font-family:Mono,monospace;font-size:10.5px;letter-spacing:.17em;color:var(--dim);
+  text-transform:uppercase;margin:0 0 12px}
+.eb i{font-style:normal;background:var(--ramp);-webkit-background-clip:text;background-clip:text;
+  color:transparent;font-weight:600}
+.tbl{width:100%;border-collapse:collapse;margin:20px 0 6px;font-size:13.5px}
+.tbl th{text-align:left;font-family:Mono,monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);font-weight:500;padding:0 14px 9px 0;
+  border-bottom:1px solid var(--line)}
+.tbl td{padding:13px 14px 13px 0;border-bottom:1px solid var(--hair);vertical-align:top}
+.tbl td:first-child{color:var(--ink);font-weight:650}
+pre{background:rgba(18,10,46,.045);border:1px solid var(--hair);border-radius:12px;
+  padding:15px 17px;overflow-x:auto;font-family:Mono,monospace;font-size:12.5px;line-height:1.66;
+  color:var(--ink);margin:16px 0}
+code{font-family:Mono,monospace;font-size:12.8px;background:rgba(18,10,46,.055);
+  padding:2px 6px;border-radius:5px;color:var(--ink);overflow-wrap:anywhere}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-left:2px solid transparent;border-image:var(--ramp) 1;padding:2px 0 2px 16px;
+  margin:18px 0;font-size:13.5px;color:var(--body);max-width:68ch}
+.note b{color:var(--ink);font-family:Mono,monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;display:block;margin-bottom:3px;font-weight:600}
+.try{border:2px solid transparent;border-radius:999px;cursor:pointer;padding:6px 14px;
+  font:700 11.5px Inter,sans-serif;color:#fff;white-space:nowrap;
+  background:linear-gradient(var(--ink),var(--ink)) padding-box,var(--ramp) border-box}
+.try:hover{transform:translateY(-1px)}
+.try[disabled]{opacity:.5;cursor:not-allowed}
+.res{font-family:Mono,monospace;font-size:11.5px;color:var(--dim);margin-top:7px;
+  overflow-wrap:anywhere;display:block}
+ul{margin:0 0 14px;padding-left:20px;max-width:70ch}
+li{margin-bottom:6px}
+.foot{border-top:1px solid var(--line);padding:24px 32px;font-size:12.5px;color:var(--dim);
+  text-align:center;margin:0}
+@media(max-width:1120px){
+  .shell{grid-template-columns:200px minmax(0,1fr);gap:36px}
+  .right{display:none}
+}
+@media(max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr);padding:32px 20px 60px}
+  .side{position:static}
+  .left{display:none}
+  .top .in{padding:0 20px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<canvas id="mist" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top"><div class="in">
+  <div></div>
+  <nav>
+    <a href="/">Home</a><a href="#start">Start</a><a href="#claim">Claim</a>
+    <a href="#split">Split</a><a href="#readers">Readers</a><a href="#unverifiable">Limits</a>
+  </nav>
+  <div></div>
+</div></header>
+
+<div class="shell">
+
+<aside class="side left">
+  <div class="grp">
+    <h4>Before launch</h4>
+    <a href="#start">Where to start</a>
+    <a href="#object">01 / The object</a>
+    <a href="#claim">02 / The claim</a>
+    <a href="#states">03 / The states</a>
+  </div>
+  <div class="grp">
+    <h4>Money</h4>
+    <a href="#split">04 / The split</a>
+    <a href="#decline">05 / Declining</a>
+  </div>
+  <div class="grp">
+    <h4>Machinery</h4>
+    <a href="#readers">06 / The readers</a>
+    <a href="#unverifiable">07 / Not verifiable</a>
+    <a href="#words">08 / Vocabulary</a>
+    <a href="#hostile">09 / Hostile questions</a>
+  </div>
+</aside>
+
+<main>
+  <h1>FEED — docs</h1>
+  <p style="margin-top:12px;font-size:16px;max-width:64ch">How a coin is bound to an account,
+    how a claim is proved without asking a platform for permission, what the split is, and
+    the things this site cannot check today.</p>
+  <div class="meta">
+    <span>9 sections</span><span>·</span><span>~8 min read</span><span>·</span>
+    <button id="copylink">Copy link ↗</button>
+  </div>
+
+  <section class="sec" id="start">
+    <p class="eb"><i>00</i> &nbsp;—&nbsp; Where to start</p>
+    <h2>Pick the row that matches why you are here.</h2>
+    <table class="tbl">
+      <thead><tr><th>You are</th><th>Read</th></tr></thead>
+      <tbody>
+        <tr><td>A creator who found a coin with your name on it</td><td><a href="#claim">02 / The claim</a>, then <a href="#decline">05 / Declining</a>. You can take the share or stop it being collected. Both are one public post.</td></tr>
+        <tr><td>Deciding whether to buy one</td><td><a href="#states">03 / The states</a> and <a href="#unverifiable">07 / Not verifiable</a>. The state word tells you whether a creator is actually involved.</td></tr>
+        <tr><td>Launching a coin for a feed</td><td><a href="#object">01 / The object</a> and <a href="#split">04 / The split</a>.</td></tr>
+        <tr><td>Checking whether any of this is real</td><td><a href="#readers">06 / The readers</a> — every endpoint has a button that calls it live from your browser.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="sec" id="object">
+    <p class="eb"><i>01</i> &nbsp;—&nbsp; The object</p>
+    <h2>A coin here is a pair: a token and one account.</h2>
+    <p>Launching takes a profile URL from X, YouTube, TikTok, Instagram, Twitch or Kick. The
+      pad resolves it to four things — the platform, the handle, the platform's own account
+      ID, and an avatar — and those are written onto the coin's page at deploy.</p>
+    <p>The account ID is the binding. A claim is matched against the ID, never the @handle,
+      because handles are sold, renamed and squatted, and a pairing that can be inherited by
+      buying a username is not a pairing.</p>
+    <div class="note"><b>Note 1</b>Not every platform hands an account ID to a server. Where
+      one does not, the coin page says so on its face and the claim falls back to matching
+      the handle at the moment of the post — which is weaker, and labelled as weaker, rather
+      than quietly treated as the same thing.</div>
+  </section>
+
+  <section class="sec" id="claim">
+    <p class="eb"><i>02</i> &nbsp;—&nbsp; The claim</p>
+    <h2>The wire format, in full.</h2>
+    <p>A claim code is a pure function of the handle. No lookup, no server, no secret — which
+      means anyone can recompute one and check a claim without trusting this site.</p>
+<pre><code>fnv1a(s):
+  h = 0x811c9dc5
+  for each char c in s:
+    h = (h XOR codeUnit(c)) * 0x01000193  mod 2^32
+
+code(handle):
+  clean = lowercase(strip_leading_@(trim(handle)))
+  x     = fnv1a("FEED:" + clean)
+  return "FEED-" + last7(pad7(uppercase(base36(x))))</code></pre>
+    <p>The post itself has no required wording. It has to contain the code, come from the
+      account the coin names, and exist long enough to be read once. Deleting it afterwards
+      does not undo the claim, and posting it in a reply is fine.</p>
+    <h3>What is checked, in order</h3>
+    <table class="tbl">
+      <thead><tr><th>Step</th><th>Check</th></tr></thead>
+      <tbody>
+        <tr><td>1 &nbsp;Code</td><td>The posted string contains exactly the code derived from the coin's handle.</td></tr>
+        <tr><td>2 &nbsp;Identity</td><td>The posting account's ID equals the ID written on the coin at deploy.</td></tr>
+        <tr><td>3 &nbsp;Wallet</td><td>The code was issued against a connected wallet, and payment goes to that wallet and no other.</td></tr>
+        <tr><td>4 &nbsp;Hold</td><td>A published waiting period runs before the escrow opens. The account can cancel inside it with one more post.</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>Note 2</b>Step 4 exists because step 2 proves control of an account
+      at a moment, not ownership of it. An account can be taken at 3am and a claim filed at
+      3:05. The hold is the window in which the real owner says no, and it is the reason this
+      is slower than a competitor that skips it.</div>
+  </section>
+
+  <section class="sec" id="states">
+    <p class="eb"><i>03</i> &nbsp;—&nbsp; The states</p>
+    <h2>Three words, and every transition between them.</h2>
+    <table class="tbl">
+      <thead><tr><th>State</th><th>What it means · how it changes</th></tr></thead>
+      <tbody>
+        <tr><td>unclaimed</td><td>Default at deploy. The feed's share accrues to escrow and nobody can move it. → <b>claimed</b> by a valid post plus the hold. → returned to holders pro rata at twelve months.</td></tr>
+        <tr><td>claimed</td><td>The share streams to the wallet named in the claim. → <b>unclaimed</b> if the account revokes. → <b>declined</b> if the account refuses outright.</td></tr>
+        <tr><td>declined</td><td>The escrow returns to holders pro rata and the feed's 60% stops being collected for the life of the coin. → reversible by the account, the same way it declined.</td></tr>
+      </tbody>
+    </table>
+    <p>The state is printed as a word at the top of the coin page, in the page's own type
+      size. It is deliberately not a badge or a coloured tick: a badge is a thing you have to
+      already know the code for, and it does not survive being screenshotted.</p>
+  </section>
+
+  <section class="sec" id="split">
+    <p class="eb"><i>04</i> &nbsp;—&nbsp; The split</p>
+    <h2>Sixty to the feed, forty to FEED.</h2>
+    <p>The creator fee is set by the venue a coin launches on, not by this pad. Whatever
+      arrives splits the same way every time, and both numbers are printed on the coin's page
+      before the first trade.</p>
+    <table class="tbl">
+      <thead><tr><th>Item</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Feed's share</td><td>60% of the creator fee</td></tr>
+        <tr><td>FEED's share</td><td>40% of the creator fee</td></tr>
+        <tr><td>Set when</td><td>At deploy, and locked — not governed, not adjustable after buyers arrive</td></tr>
+        <tr><td>Monthly fee</td><td>None</td></tr>
+        <tr><td>Tiering by follower count</td><td>None. The rate on a hundred-follower feed is the rate on a ten-million-follower feed.</td></tr>
+        <tr><td>Cost to claim</td><td>Network fees only. FEED takes nothing out of the escrow at claim time.</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>Note 3</b>"Locked" is doing real work in that table. A split that can
+      be changed after people have bought is not a split, it is an intention — and the only
+      way to tell the two apart before launch is whether anyone was willing to write the
+      number down first.</div>
+  </section>
+
+  <section class="sec" id="decline">
+    <p class="eb"><i>05</i> &nbsp;—&nbsp; Declining</p>
+    <h2>What a refusal costs, and who it costs.</h2>
+    <p>When a creator declines, the escrowed share goes back to holders pro rata and the
+      feed's 60% stops being collected. FEED's own 40% is unchanged — it does not grow, and
+      we do not inherit the refused share.</p>
+    <p>The arithmetic matters more than the promise. If a declined share reverted to us,
+      every refusal would be a payday and the pad would earn most from the creators who want
+      nothing to do with it. Instead the total fee on the coin falls, permanently, and the
+      only party worse off is us.</p>
+    <div class="note"><b>Note 4</b>A decline does not delete the coin. Nobody can un-issue
+      something already onchain, and a pad that says it can is describing a power no
+      blockchain gives anyone. What it can do is put the refusal at the top of the page in
+      the largest type on it.</div>
+  </section>
+
+  <section class="sec" id="readers">
+    <p class="eb"><i>06</i> &nbsp;—&nbsp; The readers</p>
+    <h2>Every endpoint, with a button that calls it.</h2>
+    <p>These run on this site. Press a button and your browser calls the real endpoint with a
+      real input — the response below is what came back just now, not a sample.</p>
+    <table class="tbl">
+      <thead><tr><th>Endpoint</th><th>Does</th><th></th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>/api/feed</code></td>
+          <td>Resolves a profile URL to platform, handle, account ID, followers and avatar.
+            <span class="res" id="r1"></span></td>
+          <td><button class="try" data-u="/api/feed?u=https://x.com/MrBeast" data-t="r1">Try</button></td>
+        </tr>
+        <tr>
+          <td><code>/api/avatar</code></td>
+          <td>Resolves the same input and streams the picture, so no platform CDN is called
+            from your browser and nothing is stored here.
+            <span class="res" id="r2"></span></td>
+          <td><button class="try" data-u="/api/avatar?u=https://x.com/MrBeast" data-t="r2" data-bin="1">Try</button></td>
+        </tr>
+        <tr>
+          <td><code>/api/logo</code></td>
+          <td>Fetches a platform's own mark from its own domain for the strip on the home
+            page. <span class="res" id="r3"></span></td>
+          <td><button class="try" data-u="/api/logo?d=twitch.tv" data-t="r3" data-bin="1">Try</button></td>
+        </tr>
+        <tr>
+          <td><code>/api/price</code></td>
+          <td>The SOL spot price, with its source and the second it was read. The only live
+            figure anywhere on this site. <span class="res" id="r4"></span></td>
+          <td><button class="try" data-u="/api/price" data-t="r4">Try</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>What a reader returns</h3>
+<pre><code>GET /api/feed?u=https://twitch.tv/xqc
+
+{ "ok": true,
+  "platform": "twitch", "platformLabel": "Twitch",
+  "handle": "xqc",
+  "name": null,
+  "id": "71092938",          // the binding. null if the platform refused it
+  "followers": 12345678,     // null where none is published
+  "avatar": "https://…",
+  "url": "https://twitch.tv/xqc",
+  "note": null,              // a sentence when a field could not be read
+  "bindable": true }         // false means there is no stable ID to bind to</code></pre>
+    <p>A field that could not be read comes back <code>null</code> with a sentence in
+      <code>note</code>. Nothing is filled in with a guess, an average or a cached value from
+      an earlier visitor.</p>
+  </section>
+
+  <section class="sec" id="unverifiable">
+    <p class="eb"><i>07</i> &nbsp;—&nbsp; Not verifiable</p>
+    <h2>What this site cannot check today.</h2>
+    <ul>
+      <li><b>That the escrow behaves as described.</b> The contract is not deployed. Sections 02 to 05 are a specification, and until an address is published here they are enforced by nothing.</li>
+      <li><b>That a claim post was not made by someone who stole the account.</b> The hold period is the mitigation, not a proof. A determined attacker with the account and the timing wins.</li>
+      <li><b>Follower counts, on some platforms.</b> Instagram and TikTok frequently refuse a server read. When that happens the field is <code>null</code> and the note says which platform refused.</li>
+      <li><b>That a coin's launcher has any relationship with the creator.</b> They almost certainly do not. That is the premise, not a flaw.</li>
+      <li><b>That an address you saw somewhere else is ours.</b> The token does not exist yet. When it does, the address appears on this site and in the pinned post at the same moment, and anyone posting one before that is scamming you.</li>
+      <li><b>Anything about trading.</b> Nothing has traded. There is no volume figure, no holder count and no price on this site, because all three would be zero and three zeros under a heading is a dashboard pretending to be a measurement.</li>
+    </ul>
+  </section>
+
+  <section class="sec" id="words">
+    <p class="eb"><i>08</i> &nbsp;—&nbsp; Vocabulary</p>
+    <h2>Six words used precisely on this site.</h2>
+    <table class="tbl">
+      <thead><tr><th>Word</th><th>Means, here</th></tr></thead>
+      <tbody>
+        <tr><td>Feed</td><td>One account on one platform. Not a person, not a brand — an account with an ID.</td></tr>
+        <tr><td>Claim</td><td>A post from that account containing the coin's code, matched against the ID.</td></tr>
+        <tr><td>Escrow</td><td>Where the feed's share sits before a claim. Not our wallet; not spendable by anyone.</td></tr>
+        <tr><td>Hold</td><td>The published waiting period between a valid claim and the escrow opening.</td></tr>
+        <tr><td>Decline</td><td>A refusal that returns the escrow and stops the share being collected at all.</td></tr>
+        <tr><td>Locked</td><td>Fixed at deploy and not changeable afterwards by us, by a vote, or by anyone.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="sec" id="hostile">
+    <p class="eb"><i>09</i> &nbsp;—&nbsp; Hostile questions</p>
+    <h2>The ones a sceptic asks first.</h2>
+    <h3>"So this is just a pad that lets people launch coins on strangers."</h3>
+    <p>It is a pad that lets people launch coins on strangers <i>and</i> cannot keep the
+      stranger's share. Every other pad in this category has the same first half and no
+      second half. If that distinction is worth nothing to you, the honest answer is that you
+      should not buy one of these.</p>
+    <h3>"The contract isn't deployed, so none of this is real."</h3>
+    <p>Correct, and section 07 says so before you ask. What exists today is a specification
+      published before launch so it can be held against whatever ships, plus readers you can
+      call yourself from section 06. Everything else here is a claim about the future and
+      should be read as one.</p>
+    <h3>"What stops you changing the split later?"</h3>
+    <p>At deploy, the split is written into the coin and not adjustable by us. Before deploy,
+      nothing stops us changing this page — which is why the number is published now, in
+      writing, with a date on the repository rather than only in a pinned post.</p>
+    <h3>"Why should a creator trust a claim code from a memecoin site?"</h3>
+    <p>They should not have to. The code is a pure function of their handle, written out in
+      full in section 02, computable on paper. A creator can derive it themselves, check what
+      they are posting, and verify anyone else's claim the same way.</p>
+    <h3>"Who runs this?"</h3>
+    <p>One person, so far, and no company. If a step in the payout ever requires a human to
+      press send, this page will say which step, who, and what they could get wrong. It does
+      not require one today because there is nothing to send.</p>
+  </section>
+</main>
+
+<aside class="side right">
+  <div class="grp">
+    <h4>On this page</h4>
+    <a href="#start">Where to start</a><a href="#object">The object</a>
+    <a href="#claim">The claim</a><a href="#states">The states</a>
+    <a href="#split">The split</a><a href="#decline">Declining</a>
+    <a href="#readers">The readers</a><a href="#unverifiable">Not verifiable</a>
+    <a href="#words">Vocabulary</a><a href="#hostile">Hostile questions</a>
+  </div>
+  <div class="grp">
+    <h4>Quick links</h4>
+    <a href="/">Home</a>
+    <a href="/#claim">Derive a claim code</a>
+    <a href="/#split">Split a figure</a>
+    <a href="/#faq">Questions</a>
+  </div>
+</aside>
+</div>
+
+<p class="foot">Not affiliated with any platform. Coins are not endorsed by the people they are launched for.</p>
+
+<script>
+/* misty ground — same field as the home page */
+(function(){
+  const c=document.getElementById('mist'),x=c&&c.getContext('2d');if(!x)return;
+  const RAMP=['#f0fafc','#c8eef4','#80cce8','#4a84e2','#5c3ad0'];
+  const CL=[{fx:-.06,fy:1.24,r:[.46,.37,.28,.20,.12]},{fx:1.06,fy:-.28,r:[.42,.33,.25,.17,.10]}];
+  let W=0,H=0,D=1;
+  function size(){D=Math.min(window.devicePixelRatio||1,1.5);
+    W=c.width=Math.floor(innerWidth*D);H=c.height=Math.floor(innerHeight*D);}
+  function draw(t){
+    const S=(W+H)/2,g=x.createLinearGradient(0,0,W*.83,H*.56);
+    g.addColorStop(0,'#cee9f7');g.addColorStop(.55,'#e6f2fb');g.addColorStop(1,'#d7e2f9');
+    x.globalAlpha=1;x.fillStyle=g;x.fillRect(0,0,W,H);x.globalAlpha=.86;
+    CL.forEach(function(cl,ci){
+      const cx=W*cl.fx+Math.sin(t*0.000045+ci*2.1)*W*.055,
+            cy=H*cl.fy+Math.cos(t*0.000037+ci*1.3)*H*.07;
+      cl.r.forEach(function(rf,i){
+        const r=S*rf*1.45,rg=x.createRadialGradient(cx,cy,r*.9,cx,cy,r);
+        rg.addColorStop(0,RAMP[i]);rg.addColorStop(1,RAMP[i]+'00');
+        x.fillStyle=rg;x.beginPath();x.arc(cx,cy,r,0,6.284);x.fill();
+        x.fillStyle=RAMP[i];x.beginPath();x.arc(cx,cy,r*.9,0,6.284);x.fill();
+      });
+    });
+    x.globalAlpha=1;
+  }
+  const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  size();draw(0);if(still)return;
+  let last=0,run=true;
+  function loop(ts){if(!run)return;if(ts-last>52){last=ts;draw(ts);}requestAnimationFrame(loop);}
+  requestAnimationFrame(loop);
+  addEventListener('resize',function(){size();draw(performance.now());},{passive:true});
+  document.addEventListener('visibilitychange',function(){run=!document.hidden;
+    if(run){last=0;requestAnimationFrame(loop);}});
+})();
+
+/* live endpoint probes */
+document.querySelectorAll('.try').forEach(function(b){
+  b.addEventListener('click',async function(){
+    const out=document.getElementById(b.dataset.t);
+    b.disabled=true;const was=b.textContent;b.textContent='…';
+    out.textContent='calling '+b.dataset.u+' …';
+    const t0=performance.now();
+    try{
+      const r=await fetch(b.dataset.u,{cache:'no-store'});
+      const ms=Math.round(performance.now()-t0);
+      if(b.dataset.bin){
+        const blob=await r.blob();
+        out.textContent=r.status+' · '+(blob.type||'no type')+' · '+blob.size+' bytes · '+ms+'ms';
+      }else{
+        const txt=await r.text();
+        out.textContent=r.status+' · '+ms+'ms · '+txt.slice(0,240)+(txt.length>240?'…':'');
+      }
+    }catch(e){out.textContent='the request failed from this browser: '+(e&&e.message||e);}
+    b.disabled=false;b.textContent=was;
+  });
+});
+
+/* scroll spy across both rails */
+(function(){
+  const secs=[].slice.call(document.querySelectorAll('.sec[id]'));
+  const links=[].slice.call(document.querySelectorAll('.side a'))
+    .filter(a=>(a.getAttribute('href')||'').charAt(0)==='#');
+  function upd(){
+    let best=null;
+    secs.forEach(function(s){ if(s.getBoundingClientRect().top<=innerHeight*0.34) best=s; });
+    links.forEach(function(a){ a.classList.toggle('on',!!best&&a.getAttribute('href')==='#'+best.id); });
+  }
+  addEventListener('scroll',upd,{passive:true});upd();
+})();
+
+document.getElementById('copylink').addEventListener('click',async function(){
+  const b=this;
+  try{await navigator.clipboard.writeText(location.href);b.textContent='Copied';}
+  catch(e){b.textContent='Copy failed';}
+  setTimeout(()=>b.textContent='Copy link ↗',1400);
+});
+</script>
+</body>
+</html>
