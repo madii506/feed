@@ -29,7 +29,8 @@ body{
   font:400 14.5px/1.72 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
   letter-spacing:-.003em;-webkit-font-smoothing:antialiased;
 }
-#mist{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block}
+#mist{position:fixed;inset:0;width:100%;height:100%;z-index:-3;display:block}
+#dust{position:fixed;inset:0;width:100%;height:100%;z-index:-2;display:block;pointer-events:none}
 .grain{position:fixed;inset:-40px;z-index:-1;pointer-events:none;
   background-image:radial-gradient(rgba(18,10,46,.055) 1.2px,transparent 1.3px);
   background-size:22px 22px;animation:drift 34s linear infinite}
@@ -72,8 +73,8 @@ a{color:var(--ink)}
 .lede{font-size:16.5px;line-height:1.6;color:var(--body);max-width:62ch;margin:14px 0 0}
 
 /* ---- hero ---- */
-.hero{padding:74px 0 60px;position:relative}
-.brandrow{display:flex;align-items:center;gap:18px;margin-bottom:30px;
+.hero{padding:96px 0 62px;position:relative}
+.brandrow{display:flex;align-items:center;gap:16px;margin-bottom:14px;
   animation:flick 5.4s steps(1,end) infinite}
 /* steps(1,end) so each drop is a cut, not a fade — a tween reads as a pulse and a
    pulse reads as decoration. A flicker has to arrive without warning. */
@@ -104,18 +105,17 @@ a{color:var(--ink)}
   89.6%{text-shadow:none}
   100%{text-shadow:none}
 }
-.h1sub{font-size:17px;line-height:1.55;max-width:50ch;margin:20px 0 0;color:var(--body)}
 
 /* ---- controls ---- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 24px;border-radius:999px;border:2px solid transparent;cursor:pointer;
-  font:700 13.5px Inter,sans-serif;letter-spacing:-.01em;color:#fff;
-  background:linear-gradient(var(--ink),var(--ink)) padding-box,var(--ramp) border-box;
-  transition:transform .16s ease,box-shadow .16s ease}
-.btn:hover{transform:translateY(-1.5px);box-shadow:0 8px 22px rgba(18,10,46,.16)}
+  padding:13px 25px;border-radius:999px;border:0;cursor:pointer;
+  font:700 13.5px Inter,sans-serif;letter-spacing:-.01em;color:#fff;background:var(--ink);
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
+.btn:hover{transform:translateY(-1.5px);box-shadow:0 8px 22px rgba(18,10,46,.18);background:#1d1140}
 .btn:active{transform:translateY(0)}
-.btn.ghost{color:var(--ink);
-  background:linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.9)) padding-box,var(--ramp) border-box}
+.btn.ghost{color:var(--ink);background:rgba(255,255,255,.92);
+  box-shadow:inset 0 0 0 1px var(--line)}
+.btn.ghost:hover{background:#fff}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 .inp{flex:1 1 260px;min-width:0;padding:13px 16px;border-radius:14px;
   border:1px solid var(--line);background:rgba(255,255,255,.92);color:var(--ink);
@@ -153,9 +153,6 @@ a{color:var(--ink)}
 .tab{border:1px solid var(--line);background:rgba(255,255,255,.7);border-radius:999px;
   padding:8px 17px;font:700 12.5px Inter,sans-serif;color:var(--dim);cursor:pointer;
   transition:all .18s}
-.tab[aria-selected=true]{color:#fff;border-color:transparent;
-  background:linear-gradient(var(--ink),var(--ink)) padding-box,var(--ramp) border-box;
-  border:2px solid transparent}
 
 /* ---- tape ---- */
 .tape{overflow:hidden;width:100vw;margin-left:calc(50% - 50vw);
@@ -239,8 +236,7 @@ details .a p:last-child{margin-bottom:0}
   padding:9px 19px;font:700 12.5px Inter,sans-serif;color:var(--ink);cursor:pointer;
   transition:transform .16s,box-shadow .16s}
 .fpill:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(18,10,46,.09)}
-.fpill.g{color:#fff;border:2px solid transparent;
-  background:linear-gradient(var(--ink),var(--ink)) padding-box,var(--ramp) border-box}
+.fpill.g{color:#fff;border:1px solid var(--ink);background:var(--ink)}
 @media(max-width:640px){.flow{gap:10px}.farrow{padding:0 2px;font-size:9px}}
 .farrow{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 14px;
   font-family:Mono,monospace;font-size:10px;letter-spacing:.09em;color:var(--dim);
@@ -287,8 +283,6 @@ code{font-family:Mono,monospace;font-size:13px;background:rgba(18,10,46,.055);
 .codeline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .big{font:800 clamp(26px,5vw,44px)/1 Mono,monospace;letter-spacing:-.02em;color:var(--ink)}
 .note{font-size:13px;color:var(--dim);margin-top:12px;max-width:62ch}
-.foot{border-top:1px solid var(--line);padding:26px 0;font-size:12.5px;color:var(--dim);
-  text-align:center;margin:0}
 .rv{opacity:0;transform:translateY(16px);transition:opacity .62s ease,transform .62s ease}
 .rv.vis{opacity:1;transform:none}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -313,6 +307,7 @@ code{font-family:Mono,monospace;font-size:13px;background:rgba(18,10,46,.055);
 </head>
 <body>
 <canvas id="mist" aria-hidden="true"></canvas>
+<canvas id="dust" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -365,11 +360,7 @@ code{font-family:Mono,monospace;font-size:13px;background:rgba(18,10,46,.055);
       <span class="wordmark">FEED</span>
     </div>
     <h1 class="rv">A coin for a feed.<br><span class="grad">Their cut is waiting.</span></h1>
-    <p class="h1sub rv">Every coin here is linked to one account. The creator's share of
-      the fee accrues from the first trade — whether or not they have ever heard of us —
-      and the page says <b>unclaimed</b> until they take it.</p>
-
-    <div class="panel rv" id="linkpanel">
+    <div class="panel rv" id="linkpanel" style="margin-top:38px">
       <h3>Link a feed</h3>
       <p class="note" style="margin-top:6px">Paste a profile from X, YouTube, TikTok, Instagram, Twitch or Kick. This reads the live account and builds the header its coin page would carry.</p>
       <div class="row" style="margin-top:16px">
@@ -690,8 +681,6 @@ code{font-family:Mono,monospace;font-size:13px;background:rgba(18,10,46,.055);
 
 </main>
 
-<p class="foot">Not affiliated with any platform. Coins are not endorsed by the people they are launched for.</p>
-
 <script>
 const CONFIG={ca:'',x:'',pool:'',chart:'',launchpad:'https://pump.fun/create'};
 
@@ -734,6 +723,53 @@ const CONFIG={ca:'',x:'',pool:'',chart:'',launchpad:'https://pump.fun/create'};
   addEventListener('resize',function(){size();draw(performance.now());},{passive:true});
   document.addEventListener('visibilitychange',function(){
     run=!document.hidden; if(run){last=0;requestAnimationFrame(loop);}
+  });
+})();
+
+/* ---------- falling dust ----------
+   Motes drift down and sideways on their own sine, each with its own size, speed and
+   phase. Every mote sharing one wave reads as a curtain rather than as dust, so the
+   drift frequency is per-mote and the horizontal swing is small next to the fall. */
+(function(){
+  const c=document.getElementById('dust'),x=c&&c.getContext('2d');
+  if(!x||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  let W=0,H=0,D=1,M=[];
+  function size(){
+    D=Math.min(window.devicePixelRatio||1,2);
+    W=c.width=Math.floor(innerWidth*D);H=c.height=Math.floor(innerHeight*D);
+    const n=Math.round(Math.min(150,Math.max(46,(innerWidth*innerHeight)/13000)));
+    M=[];for(let i=0;i<n;i++)M.push(mote(Math.random()*H));
+  }
+  function mote(y){
+    const r=(0.7+Math.random()*1.9)*D;
+    return {x:Math.random()*W,y:y,r:r,
+      v:(5+Math.random()*16)*D/60,          // px per frame at 60fps
+      sw:(6+Math.random()*22)*D,            // sideways swing
+      f:0.0004+Math.random()*0.0011,        // its own drift frequency
+      p:Math.random()*6.283,
+      a:0.16+Math.random()*0.34,
+      h:Math.random()<0.34};                // a third pick up the brand's blue
+  }
+  let last=0,run=true;
+  function loop(ts){
+    if(!run)return;
+    const dt=Math.min(3,(ts-last)/16.67||1);last=ts;
+    x.clearRect(0,0,W,H);
+    for(let i=0;i<M.length;i++){
+      const m=M[i];
+      m.y+=m.v*dt;
+      const px=m.x+Math.sin(ts*m.f+m.p)*m.sw;
+      if(m.y-m.r>H){M[i]=mote(-10*D);continue;}
+      x.beginPath();x.arc(px,m.y,m.r,0,6.283);
+      x.fillStyle=m.h?'rgba(58,112,232,'+(m.a*0.72)+')':'rgba(255,255,255,'+m.a+')';
+      x.fill();
+    }
+    requestAnimationFrame(loop);
+  }
+  size();requestAnimationFrame(loop);
+  addEventListener('resize',size,{passive:true});
+  document.addEventListener('visibilitychange',function(){
+    run=!document.hidden;if(run){last=0;requestAnimationFrame(loop);}
   });
 })();
 
